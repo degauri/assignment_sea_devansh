@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin Dashboard</title>
+        <!-- Include Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+<style>
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200px;
+        height: 100%;
+        background-color: #333;
+        color: #fff;
+        z-index: 999;
+        transition: left 0.3s ease-in-out;
+    }
+
+    .navbar.open {
+        left: -200px;
+    }
+
+    .navbar ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        height: 100%;
+    }
+
+    .navbar ul li {
+        margin-bottom: 20px;
+    }
+
+    .navbar ul li a {
+        color: #fff;
+        text-decoration: none;
+        transition: color 0.3s ease-in-out;
+        margin-left: 20px;
+    }
+
+    .navbar ul li a:hover {
+        color: #ff0;
+    }
+
+    .admin-dashboard {
+        margin-left: 200px;
+        padding: 20px;
+    }
+
+    .black-box {
+        background-color: #fff;
+        color: #000;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #000;
+    }
+
+    .metrics canvas {
+        width: 100%;
+        height: 100%;
+    }
+
+    .chart-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+
+    #bookingsChartContainer {
+        width: 45%;
+        height: 50vh;
+        margin-left: 100px;
+
+    }
+
+    #roomsChartContainer {
+        width: 35%;
+        height: 40vh;
+        margin-left: 150px;
+    }
+
+    #bookingsChart,
+    #roomsChart {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+</head>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var ctx = document.getElementById('bookingsChart').getContext('2d');
+        var chartDataString = '{{ bookings_per_month | replace("\'", "\\\'") | safe }}';
+        var chartData = chartDataString.trim() ? JSON.parse(chartDataString) : {};
+
+        var bookingsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(chartData),
+                datasets: [{
+                    label: 'Number of Bookings per month',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    data: Object.values(chartData)
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                animation: {
+                    onComplete: function () {
+                        var chartCanvas = document.getElementById('bookingsChart');
+                    }
+                }
+            }
+        });
+
+        var roomsCtx = document.getElementById('roomsChart').getContext('2d');
+        var roomsDataString = '{{ rooms_distribution | replace("\'", "\\\'") | safe }}';
+        var roomsData = roomsDataString.trim() ? JSON.parse(roomsDataString) : {};
+
+        var roomsChart = new Chart(roomsCtx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(roomsData),
+                datasets: [{
+                    label: 'Rooms Distribution',
+                    backgroundColor: ['rgba(255, 159, 64, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)'],
+                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'],
+                    borderWidth: 1,
+                    data: Object.values(roomsData)
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    });
+
+    var roomsCtx = document.getElementById('roomsChart').getContext('2d');
+    var roomsData = { rooms_distribution };
+
+    var roomsChart = new Chart(roomsCtx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(roomsData),
+            datasets: [{
+                label: 'Rooms Distribution',
+                backgroundColor: ['rgba(255, 159, 64, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)', 'rgba(75, 192, 192, 0.7)'],
+                borderColor: ['rgba(255, 159, 64, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'],
+                borderWidth: 1,
+                data: Object.values(roomsData)
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <br>
+    <br>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+   <!-- Main Content -->
+<body class="bg-gray-100 flex">
+    <!-- Sidebar Navigation -->
+    <div class="bg-gray-800 text-white w-1/6 p-4 h-screen flex flex-col justify-between">
+        <div>
+            <ul class="space-y-4">
+                <br>
+                <li><a href="/admin/bookings" class="block py-2 px-4 hover:bg-gray-700">View Bookings</a></li>
+                <li><a href="/admin/view_rooms" class="block py-2 px-4 hover:bg-gray-700">View Rooms</a></li>
+                <li><a href="/admin/view_users" class="block py-2 px-4 hover:bg-gray-700">View Users</a></li>
+            </ul>
+        </div>
+        <div>
+            <a href="/login" class="text-blue-500 hover:underline"><button
+                    class="bg-white hover:bg-gray-100 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Back</button></a>
+        </div>
+    </div>
+
+    <div class="w-5/6 p-8">
+
+        <h1 class="text-3xl font-bold mb-4 text-center">Admin Dashboard</h1>
+         <!-- Display upcoming bookings -->
+        <div class="bookings mt-8">
+            <div class="bg-gray-200 p-4 rounded-lg">
+                <h2 class="text-xl font-bold mb-4">Upcoming Bookings for the next 2 weeks</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-8 gap-4">
+                    {% if bookings %}
+                    {% for booking in bookings %}
+                    <div class="border bg-white rounded-md p-3 max-w-max mb-4"> <!-- Added mb-4 here -->
+                        <p><strong>Date:</strong> {{ booking[3] }}</p>
+                        <p><strong>Room:</strong> {{ booking[1] }}</p>
+                        <p><strong>Time:</strong> {{ booking[4] }}</p>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p>No upcoming bookings.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <br>
+        <br>
+         
+        <div class="metrics mt-12 flex">
+                 <!-- Container for bookings chart -->
+            <div id="bookingsChartContainer" class="p-3 rounded-lg ml-5 mt-2">
+                <canvas id="bookingsChart" class="w-full"></canvas>
+            </div>
+              <!-- Container for rooms distribution chart -->
+            <div id="roomsChartContainer" class="p-3 rounded-lg ml-4 mt-2">
+                <canvas id="roomsChart" class="w-full"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Bookings</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"> -->
+    <style>
+        .booking-card {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .btn {
+            cursor: pointer;
+        }
+
+        #backbutton {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #497DF2;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.15rem;
+            border: none;
+
+        }
+
+        #nobookings {
+            text-align: center;
+            margin-top: 350px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <br>
+        <h2 class="text-center">Bookings for {{ name }}</h2>
+        <br>
+        {% if bookings %}
+        {% for booking in bookings %}
+        <div class="card booking-card">
+            <div class="card-body">
+                <h5 class="card-title">{{ booking[1] }}</h5>
+                <p class="card-text">Date: {{ booking[3] }}</p>
+                <p class="card-text">Time: {{ booking[4] }}</p>
+                <p class="card-text">Attendance: {{ booking[5] }}</p>
+                <p class="card-text">Equipment: {{ booking[6] or 'None' }}</p>
+                <p class="card-text">Status: {{ booking[7] }}</p>
+
+                <div class="card-buttons">
+                    <button class="btn btn-primary bg-black" data-toggle="modal" data-target="#updateModal"
+                        data-booking-id="{{ booking[0] }}" data-room-name="{{ booking[1] }}"
+                        data-user="{{ booking[2] }}" data-date="{{ booking[3] }}" data-time="{{ booking[4] }}"
+                        data-attendance="{{ booking[5] }}" data-equipment="{{ booking[6] }}">Update Booking</button>
+                    <button class="btn btn-danger" onclick="confirmCancel('{{ booking[0] }}')">Cancel Booking</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="flex justify-center items-center min-h-screen">
+            <h4 id='nobookings'>No bookings found for this user.</h4>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="modal" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateModalLabel">Update Booking</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateBookingForm" method="POST" action="/update_bookings">
+                        <div class="form-group">
+                            <label for="modal-booking-id">Booking ID:</label>
+                            <input type="text" class="form-control" id="modal-booking-id" name="booking_id" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-room-name">Room Name:</label>
+                            <input type="text" class="form-control" id="modal-room-name" name="room_name" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-user">User:</label>
+                            <input type="text" class="form-control" id="modal-user" name="user" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-date">Date:</label>
+                            <input type="date" class="form-control" id="modal-date" name="date">
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-time">Time:</label>
+                            <input type="time" class="form-control" id="modal-time" name="time">
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-attendance">Attendance:</label>
+                            <input type="text" class="form-control" id="modal-attendance" name="attendance">
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-equipment">Equipment:</label>
+                            <input type="text" class="form-control" id="modal-equipment" name="equipment">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Booking</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function confirmCancel(bookingId) {
+            if (confirm("Are you sure you want to cancel this booking?")) {
+                fetch('/cancel_rooms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'booking_id': bookingId,
+                        'user_type': 'User'
+                    }),
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Booking deleted successfully!')
+                            location.reload();
+                        } else {
+                            console.error('Failed to cancel booking');
+                        }
+                    })
+            } else {
+                console.log("Booking cancellation unsuccessful.");
+            }
+        }
+
+        $('#updateModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var bookingId = button.data('booking-id');
+            var roomName = button.data('room-name');
+            var user = button.data('user');
+            var date = button.data('date');
+            var time = button.data('time');
+            var attendance = button.data('attendance');
+            var equipment = button.data('equipment');
+            var modal = $(this);
+            modal.find('#modal-booking-id').val(bookingId);
+            modal.find('#modal-room-name').val(roomName);
+            modal.find('#modal-user').val(user);
+            modal.find('#modal-date').val(date);
+            modal.find('#modal-time').val(time);
+            modal.find('#modal-attendance').val(attendance);
+            modal.find('#modal-equipment').val(equipment);
+        });
+
+    
+        function validateForm() {
+      
+            var bookingId = $('#modal-booking-id').val();
+            var roomName = $('#modal-room-name').val();
+            var user = $('#modal-user').val();
+            var date = $('#modal-date').val();
+            var time = $('#modal-time').val();
+            var attendance = $('#modal-attendance').val();
+            var equipment = $('#modal-equipment').val();
+
+          
+            if (!bookingId || !roomName || !user || !date || !time || !attendance) {
+                alert("Please fill in all the fields.");
+                return false; 
+            }
+
+            var currentDate = new Date();
+            var selectedDate = new Date(date);
+
+         
+            if (selectedDate <= currentDate) {
+                alert("Please select a future date.");
+                return false; 
+            }
+
+    
+            return confirm("Are you sure you want to update this booking?");
+        }
+
+        $(document).ready(function () {
+            $('#updateBookingForm').submit(function (event) {
+              
+                if (!validateForm()) {
+                    event.preventDefault(); 
+                } else {
+            
+                    $('#updateModal').modal('hide');
+                }
+            });
+        });
+    </script>
+    <a href="/gallery"><button id='backbutton'>Back</button></a>
+</body>
+
+</html>

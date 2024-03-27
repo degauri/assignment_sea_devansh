@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin Bookings</title>
+      <!-- Include Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<style>
+    /* CSS styles for modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 400px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+
+<body class="bg-gray-100 p-8">
+    <a href="/adminpage" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+        Back
+    </a>
+    <br><br>
+    <h1 class="text-3xl font-bold mb-4 text-gray-900">Bookings</h1>
+
+    <div class="overflow-x-auto">
+           <!-- Table for displaying bookings -->
+        <table class="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
+            <thead class="bg-blue-800 text-white">
+                 <!-- Table headers -->
+                <tr>
+                    <th class="px-4 py-2 bg-gray-800 text-white text-center">Booking ID</th>
+                    <th class="px-4 py-2 bg-gray-800 text-white text-center">Room</th>
+                    <th class="px-4 py-2 bg-gray-800 text-white text-center">User</th>
+                    <th class="px-4 py-2 bg-gray-800 text-white text-center">Date</th>
+                    <th class="px-4 py-2 bg-gray-800 text-white text-center">Time</th>
+                    <th class="px-4 py-2 bg-gray-800 text-white text-center">Attendance</th>
+                    <th class="px-4 py-2 bg-gray-800 text-white text-center">Equipment</th>
+                    <th class="px-4 py-2 bg-gray-800 text-white text-center">Status</th>
+                    <th class="px-4 py-2 bg-gray-800 text-white text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700">
+                  <!-- Loop through bookings -->
+                {% for booking in bookings %}
+                <tr class="hover:bg-gray-200 items-center">
+                    <td class="border px-4 py-2 text-center">{{ booking[0] }}</td>
+                    <td class="border px-4 py-2 text-center">{{ booking[1] }}</td>
+                    <td class="border px-4 py-2 text-center">{{ booking[2] }}</td>
+                    <td class="border px-4 py-2 text-center">{{ booking[3] }}</td>
+                    <td class="border px-4 py-2 text-center">{{ booking[4] }}</td>
+                    <td class="border px-4 py-2 text-center">{{ booking[5] }}</td>
+                    <td class="border px-4 py-2 text-center">{{ booking[6] }}</td>
+                    <td class="border px-4 py-2 text-center">{{ booking[7] }}</td>
+                    <td class="border px-4 py-2 flex justify-center items-center">
+                            <!-- Buttons for updating and deleting bookings -->
+                        <button
+                            class="btn-primary bg-gray-600 hover:bg-gray-800 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline ml-2"
+                            onclick="updateModal('{{ booking[0] }}', '{{ booking[1] }}', '{{ booking[2] }}', '{{ booking[3] }}', '{{ booking[4] }}', '{{ booking[5] }}', '{{ booking[6] }}', '{{ booking[7] }}')">Update</button>
+                        <button onclick="deleteBooking('{{ booking[0] }}')"
+                            class="bg-gray-600 hover:bg-gray-800 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline ml-2">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Update booking modal -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none"
+        id="updateModal" style="display: none;">
+        <div class="relative w-auto my-6 mx-auto max-w-sm">
+
+            <div
+                class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                <div class="flex items-start justify-between p-5 border-b border-solid border-gray-300 rounded-t">
+                    <h3 class="text-xl font-semibold" id="updateModalLabel">Update Booking</h3>
+                    <button type="button"
+                        class="p-1 ml-auto bg-transparent border-0 text-gray-700 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
+                        aria-label="Close" onclick="closeUpdateModal()">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="relative p-6 flex-auto">
+                    <form id="updateBookingForm" method="POST" action="/admin/update_booking">
+                        <input type="hidden" id="bookingId" name="bookingId">
+                        <label for="room" class="block mb-2">Room:</label>
+                        <input type="text" id="room" name="room" readonly
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500 mb-4">
+
+                        <label for="user" class="block mb-2">User:</label>
+                        <input type="text" id="user" name="user" readonly
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500 mb-4">
+
+                        <label for="date" class="block mb-2">Date:</label>
+                        <input type="text" id="date" name="date"
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500 mb-4"
+                            required>
+
+                        <label for="time" class="block mb-2">Time:</label>
+                        <input type="text" id="time" name="time"
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500 mb-4"
+                            required>
+
+                        <label for="attendance" class="block mb-2">Attendance:</label>
+                        <input type="text" id="attendance" name="attendance"
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500 mb-4"
+                            required>
+
+                        <label for="equipment" class="block mb-2">Equipment:</label>
+                        <input type="text" id="equipment" name="equipment"
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500 mb-4">
+
+                        <label for="status" class="block mb-2">Status:</label>
+                        <input type="text" id="status" name="status"
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500 mb-4"
+                            required>
+
+                        <button type="button" onclick="updateBooking()"
+                            class="bg-black hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Update
+                            Booking</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function deleteBooking(bookingId) {
+            if (confirm("Are you sure you want to cancel this booking?")) {
+                fetch('/cancel_rooms', {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        'booking_id': bookingId,
+                        'user_type': 'Admin',
+                    }),
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            location.reload();
+                        } else {
+                            console.error('Failed to cancel booking');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error canceling booking:', error);
+                    });
+            } else {
+                console.log("Booking cancellation unsuccessful.");
+            }
+        }
+
+        function updateModal(bookingId, room, user, date, time, attendance, equipment, status) {
+            document.getElementById('bookingId').value = bookingId;
+            document.getElementById('room').value = room;
+            document.getElementById('user').value = user;
+            document.getElementById('date').value = date;
+            document.getElementById('time').value = time;
+            document.getElementById('attendance').value = attendance;
+            document.getElementById('equipment').value = equipment;
+            document.getElementById('status').value = status;
+
+            const modal = document.getElementById('updateModal');
+            modal.style.display = 'block';
+        }
+
+        function closeUpdateModal() {
+            const modal = document.getElementById('updateModal');
+            modal.style.display = 'none';
+        }
+
+        function updateBooking() {
+    if (confirm("Are you sure you want to update this booking?")) {
+        const bookingId = document.getElementById('bookingId').value;
+        const room = document.getElementById('room').value;
+        const user = document.getElementById('user').value;
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const attendance = document.getElementById('attendance').value;
+        const equipment = document.getElementById('equipment').value;
+        const status = document.getElementById('status').value;
+
+        fetch('/admin/update_booking', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                bookingId,
+                name: room,
+                user,
+                date,
+                time,
+                attendance,
+                equipment,
+                status,
+            }),
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Booking updated successfully');
+                closeUpdateModal();
+                location.reload();
+            } else {
+                console.error('Failed to update booking');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating booking:', error);
+        });
+    } else {
+        console.log("Booking update canceled.");
+    }
+}
+
+    </script>
+</body>
+
+</html>

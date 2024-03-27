@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room Gallery</title>
+    <!-- Internal CSS styles -->
+  <style>
+    .room {
+      display: flex;
+      flex-direction: row;
+      margin: 20px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+
+    .room img {
+      width: 250px;
+      height: auto;
+      margin-right: 20px;
+      border: 1px solid #ddd;
+    }
+
+    .room-info {
+      flex: 1;
+    }
+
+    .center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+    }
+
+    .popup-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 1;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .popup-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      height: 80%;
+      max-width: 800px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .popup-content img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      margin: auto;
+
+    }
+
+
+    #addRoomsButton {
+      position: absolute;
+      top: 40px;
+      right: 40px;
+    }
+
+    #bookRoomButton {
+      margin-right: 5px;
+      height: fit-content;
+    }
+
+    #showUserBookingsButton {
+      position: absolute;
+      top: 40px;
+      right: 40px;
+    }
+
+    #updateButton,
+    #deleteButton {
+      margin-right: 5px;
+      height: fit-content;
+    }
+
+    #backbutton {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+  </style>
+  <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' rel='stylesheet' />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-gray-100 p-8">
+<!-- JavaScript code for dynamic functionalities -->
+  <script>
+    var currentRoomName;
+
+    function goToBookingPage() {
+      window.location.href = '/{{username}}/bookings';
+    }
+
+    function openPopup(roomName) {
+      var popupContainer = document.getElementById('popupContainer');
+      var roomNameHeader = document.getElementById('roomNameHeader');
+      var roomImagesContainer = document.getElementById('roomImagesContainer');
+
+      var url = `/rooms/${roomName}`;
+      window.location.href = url;
+    }
+
+    function openBookingPopup(roomName) {
+      var bookingPopup = document.getElementById('bookingPopup');
+      bookingPopup.style.display = 'flex';
+      document.body.classList.add('popup-background-blur');
+
+      document.getElementById('bookingRoomName').value = roomName;
+      document.getElementById('bookingTitle').textContent = 'Book ' + roomName;
+
+    }
+
+    function setBookingRoomName() {
+      var bookingRoomName = document.getElementById('bookingRoomName').value;
+      if (bookingRoomName === '') {
+        return false;
+      }
+
+      return true;
+    }
+
+    function closePopup() {
+    var bookingPopup = document.getElementById('bookingPopup');
+    bookingPopup.style.display = 'none';
+    document.body.classList.remove('popup-background-blur');
+  }
+
+    function filterRooms() {
+      const buildingFilterValue = document.getElementById('buildingFilter').value;
+      const videoConferencingFilterValue = document.getElementById('videoConferencingFilter').value;
+
+      const roomElements = document.querySelectorAll('.room');
+
+      roomElements.forEach(room => {
+        const roomBuilding = room.dataset.building;
+        const roomVideoConferencing = room.dataset.videoConferencing.toLowerCase();
+
+        const shouldShowRoom =
+          (buildingFilterValue === 'all' || roomBuilding === buildingFilterValue) &&
+          (videoConferencingFilterValue === 'all' || roomVideoConferencing === videoConferencingFilterValue);
+
+        room.style.display = shouldShowRoom ? 'flex' : 'none';
+      });
+    }
+
+
+    function showUpdateRoomModal(roomName, building, occupancy, availability, videoConferencing) {
+      var modal = document.getElementById('updateRoomModal');
+      modal.style.display = 'block';
+      document.getElementById('roomName').value = roomName;
+      document.getElementById('building').value = building;
+      document.getElementById('occupancy').value = occupancy;
+      document.getElementById('availability').value = availability;
+      document.getElementById('videoConferencing').value = videoConferencing;
+
+    
+      if (folderDict && folderDict.hasOwnProperty(roomName)) {
+        var displayImage = folderDict[roomName]; 
+        document.getElementById('displayImage').value = displayImage; 
+      }
+    }
+
+    function closeUpdateRoomModal() {
+      var modal = document.getElementById('updateRoomModal');
+      modal.style.display = 'none';
+    }
+
+    function updateRoomDetails() {
+
+      var confirmed = window.confirm('Are you sure you want to update room details?');
+      if (confirmed) {
+        var formData = new FormData();
+        formData.append('roomName', document.getElementById('roomName').value);
+        formData.append('building', document.getElementById('building').value);
+        formData.append('occupancy', document.getElementById('occupancy').value);
+        formData.append('availability', document.getElementById('availability').value);
+        formData.append('videoConferencing', document.getElementById('videoConferencing').value);
+        formData.append('displayImage', document.getElementById('displayImage').files[0]);
+
+        fetch('/admin/update_room', {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => {
+            if (response.ok) {
+              alert('Room details updated successfully');
+              location.reload();
+            } else {
+              alert('Failed to update room details');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating room details');
+          });
+      }
+
+      else {
+        return;
+      }
+    }
+
+    function deleteRoom(roomName) {
+      const confirmDelete = confirm("Are you sure you want to delete this room?");
+
+      if (confirmDelete) {
+        fetch(`/admin/delete_room?room_name=${roomName}`, {
+          method: 'POST'
+        })
+          .then(response => {
+            if (response.ok) {
+              alert("Room deleted successfully");
+              location.reload();
+            } else {
+              alert("Failed to delete room");
+            }
+          })
+          .catch(error => {
+            console.error("Error:", error);
+            alert("An error occurred while deleting the room");
+          });
+      }
+    }
+
+
+    function addRoomModal() {
+      var modal = document.getElementById('addRoomModal');
+      modal.style.display = 'flex';
+
+      addRoomModal.style.display = 'flex';
+      document.body.classList.add('popup-background-blur');
+    }
+
+    function closeAddRoomModal() {
+      var modal = document.getElementById('addRoomModal');
+      modal.style.display = 'none';
+    }
+
+    function validateDate() {
+    
+    var inputDateStr = document.getElementById('date').value;
+    var parts = inputDateStr.split('-');
+
+    var selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    var currentDate = new Date();
+    
+    selectedDate.setHours(0, 0, 0, 0);
+    currentDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < currentDate) {
+      alert('Please select a date in the future.');
+      document.getElementById('date').value = ''; 
+      return false; 
+    } else {
+      document.getElementById('dateError').style.display = 'none';
+      return setBookingRoomName()
+    }
+  }
+
+  </script>
+
+  {% if user_type == 'admin' %}
+  <a href="/adminpage"
+    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Back</a>
+  {% else %}
+  <a href="/login"
+    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Back</a>
+  {% endif %}
+
+
+  {% if user_type == 'admin' %}
+  <div class="center">
+    <h2 class="text-3xl font-bold mb-4 text-gray-900">Admin Room Gallery</h2>
+  </div>
+  <button id="addRoomsButton" onclick=addRoomModal()
+    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    Add rooms
+  </button>
+  {% else %}
+  <div class="center">
+    <h2 class="text-3xl font-bold mb-4 text-gray-900">Room Gallery</h2>
+  </div>
+  <button id="showUserBookingsButton" onclick="goToBookingPage()"
+    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    Go to Booking Page
+  </button>
+  {% endif %}
+
+  <div class="filter-container flex justify-center items-center space-x-4">
+    <div class="flex items-center">
+      <label for="buildingFilter" class="mr-2">Filter by Building:</label>
+      <select id="buildingFilter" onchange="filterRooms()" class="bg-white border border-gray-300 rounded-md px-4 py-2">
+        <option value="all">All</option>
+        {% set unique_buildings = [] %}
+        {% for room in rooms %}
+        {% if room[2] not in unique_buildings %}
+        {% set _ = unique_buildings.append(room[2]) %}
+        <option value="{{ room[2] }}">{{ room[2] }}</option>
+        {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="flex items-center">
+      <label for="videoConferencingFilter" class="mr-2">Filter by Video Conferencing:</label>
+      <select id="videoConferencingFilter" onchange="filterRooms()"
+        class="bg-white border border-gray-300 rounded-md px-4 py-2">
+        <option value="all">All</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+  </div>
+
+  {% for room in rooms %}
+  <div class="room bg-white shadow-md rounded-lg p-4 mb-4" data-building="{{ room[2] }}"
+    data-video-conferencing="{{ room[6]|lower }}">
+ 
+    <a href="#" onclick="openPopup('{{ room[1] }}')" class="block">
+      <img src="data:image/jpeg;base64,{{ room[-1] }}" alt="{{ room[1] }}" class="border border-black rounded-md">
+    </a>
+
+
+    <div class="room-info mt-2">
+      <h3 class="text-lg font-semibold">{{ room[1] }}</h3>
+      <br>
+      <p>Building: {{ room[2] }}</p>
+      <br>
+      <p>Occupancy: {{ room[3] }}</p>
+      <br>
+      <p>Available: {{ room[5] }}</p>
+      <br>
+      <p>Video Conferencing: {{ room[6] }}</p>
+    </div>
+
+
+    {% if user_type == 'regular' %}
+    <button id="bookRoomButton" onclick="openBookingPopup('{{ room[1] }}')"
+      class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Book Room</button>
+    {% endif %}
+
+    {% if user_type == 'admin' %}
+    <button id="updateButton"
+      onclick="showUpdateRoomModal('{{ room[1] }}', '{{ room[2] }}', '{{ room[3] }}', '{{ room[5] }}', '{{ room[6] }}')"
+      class="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Update</button>
+    <button id="deleteButton" onclick="deleteRoom('{{ room[1] }}')"
+      class="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Delete</button>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <div id="updateRoomModal" class="popup-container fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex hidden">
+    <div class="relative mx-auto my-8 max-w-lg p-6 bg-white rounded-lg shadow-lg">
+      <span class="absolute top-0 right-0 p-4 cursor-pointer" onclick="closeUpdateRoomModal()">&times;</span>
+      <h2 class="text-2xl font-bold mb-4 text-center">Update Room Details</h2>
+      <form>
+        <div class="mb-4">
+          <label for="roomName" class="block mb-1">Room Name:</label>
+          <input type="text" id="roomName" name="roomName"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 bg-gray-200"
+            readonly>
+        </div>
+        <div class="mb-4">
+          <label for="building" class="block mb-1">Building:</label>
+          <input type="text" id="building" name="building" required
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" >
+        </div>
+        <div class="mb-4">
+          <label for="occupancy" class="block mb-1">Occupancy:</label>
+          <input type="text" id="occupancy" name="occupancy"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" required>
+        </div>
+        <div class="mb-4">
+          <label for="displayImage" class="block mb-1">Main Display Image:</label>
+          <input type="file" id="displayImage" name="displayImage" accept="image/*"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+        </div>
+        <div class="mb-4">
+          <label for="availability" class="block mb-1">Availability:</label>
+          <input type="text" id="availability" name="availability"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+        </div>
+        <div class="mb-4">
+          <label for="videoConferencing" class="block mb-1">Video Conferencing:</label>
+          <input type="text" id="videoConferencing" name="videoConferencing"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+        </div>
+        <button type="button" onclick="updateRoomDetails()"
+          class="w-full px-4 py-2 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600">Update
+          Details</button>
+      </form>
+    </div>
+  </div>
+
+
+  <div id="bookingPopup" class="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-md w-full max-w-md relative">
+      <h2 id="bookingTitle" class="text-lg font-bold mb-4 text-center">Book Room</h2>
+      <span class="absolute top-0 right-0 p-4 cursor-pointer" onclick="closePopup()">&times;</span>
+      <form action="/book_room" method="post" onsubmit="return validateDate()" class="space-y-4">
+        <input type="hidden" id="bookingRoomName" name="room_name" value="">
+        <div class="flex flex-col">
+          <label for="date" class="mb-1">Date:</label>
+          <input type="date" id="date" name="date" required class="border border-gray-300 rounded-md py-2 px-3" onchange="validateDate()">
+        </div>
+        <div class="flex flex-col">
+          <label for="time" class="mb-1">Time:</label>
+          <input type="time" id="time" name="time" required class="border border-gray-300 rounded-md py-2 px-3">
+        </div>
+        <div class="flex flex-col">
+          <label for="attendance" class="mb-1">Expected attendance:</label>
+          <input type="number" id="attendance" name="attendance" min="1" required
+            class="border border-gray-300 rounded-md py-2 px-3">
+        </div>
+        <div class="flex flex-col">
+          <label for="equipment" class="mb-1">Any special equipment needed?</label>
+          <textarea id="equipment" name="equipment" rows="3"
+            class="border border-gray-300 rounded-md py-2 px-3"></textarea>
+        </div>
+        <div id="calendar"></div>
+        <button type="submit"
+          class="bg-blue-500 text-white rounded-md py-2 px-4 hover:bg-blue-600 transition duration-300">Book
+          Room</button>
+      </form>
+    </div>
+  </div>
+
+  {% if room_add == 'true' %}
+  <script>
+    alert("Room added successfully!");
+    window.location.href = '/admin/view_rooms';
+  </script>
+  {% endif %}
+
+  <div id="addRoomModal" class="popup-container fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+      <button onclick="closeAddRoomModal()"
+        class="absolute top-4 right-4 text-gray-700 hover:text-gray-900">&times;</button>
+
+      <form action="/admin/add_rooms" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <label for="room_name" class="block">Room Name:</label>
+        <input type="text" id="room_name" name="room_name"
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" required>
+
+        <label for="building" class="block">Building:</label>
+        <input type="text" id="building" name="building"
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" required>
+
+        <label for="occupancy" class="block">Occupancy:</label>
+        <input type="number" id="occupancy" name="occupancy"
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" required>
+
+        <label for="images" class="block">Images:</label>
+        <input type="file" id="images" name="images" accept="image/*"
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" required>
+
+        <div class="flex items-center">
+          <label for="available" class="block mr-2">Available:</label>
+          <input type="checkbox" id="available" name="available"
+            class="border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div class="flex items-center">
+          <label for="video_conferencing" class="block mr-2">Video Conferencing:</label>
+          <input type="checkbox" id="video_conferencing" name="video_conferencing"
+            class="border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+        </div>
+
+        <label for="slideshow_images" class="block">Slideshow Images:</label>
+        <input type="file" id="slideshow_images" name="slideshow_images" accept="image/*" multiple
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" required>
+
+        <input type="submit" value="Add Room"
+          class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      </form>
+    </div>
+
+  </div>
+</body>
+
+</html>

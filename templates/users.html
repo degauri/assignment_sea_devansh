@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <style>
+    .user-box {
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    #backbutton {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    th,
+    td {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ccc;
+  
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border: 1px solid #888;
+      max-width: 80%;
+      width: 600px;
+
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 p-8">
+  <a href="/adminpage" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+    Back
+  </a>
+  <h1 class="text-3xl font-bold mb-4 text-gray-900 text-center">User Management</h1>
+
+  <h2 class="text-2xl font-bold mb-2">Users</h2>
+  <br>
+
+  <div class="overflow-x-auto">
+    <table class="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
+      <thead class="bg-blue-800 text-white">
+        <tr>
+          <th class="px-4 py-2 bg-gray-800 text-white text-center">User ID</th>
+          <th class="px-4 py-2 bg-gray-800 text-white text-center">Name</th>
+          <th class="px-4 py-2 bg-gray-800 text-white text-center">Email</th>
+          <th class="px-4 py-2 bg-gray-800 text-white text-center">Status</th>
+          <th class="px-4 py-2 bg-gray-800 text-white text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-700">
+        {% for user in users %}
+        <tr class="hover:bg-gray-200 items-center">
+          <td class="border px-4 py-2 text-center">{{ user[0] }}</td>
+          <td class="border px-4 py-2 text-center">{{ user[1] }}</td>
+          <td class="border px-4 py-2 text-center">{{ user[2] }}</td>
+          <td class="border px-4 py-2 text-center">{{ user[3] }}</td>
+          <td class="border px-4 py-2 flex justify-center items-center">
+            <!-- <button class="bg-gray-600 hover:bg-gray-800 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline ml-2" data-toggle="modal" data-target="#updateModal"
+                          data-user-id="{{ user[0] }}" data-user-name="{{ user[1] }}" data-user-email="{{ user[2] }}"
+                          data-status="{{ user[3] }}" data-usertype="User">Update</button> -->
+
+            <button
+              class="bg-gray-600 hover:bg-gray-800 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline ml-2"
+              onclick="openUpdateModal('{{ user[0] }}', '{{ user[1] }}', '{{ user[2] }}', '{{ user[3] }}', 'user')">
+              Update
+            </button>
+            <button
+              class="bg-gray-600 hover:bg-gray-800 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline ml-2"
+              onclick="deleteUser('{{ user[0] }}','user')">Delete</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <br>
+  <h2 class="text-2xl font-bold mb-2">Admin Users</h2>
+  <br>
+  <div class="overflow-x-auto">
+    <table class="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
+      <thead class="bg-blue-800 text-white">
+        <tr>
+          <th class="px-4 py-2 bg-gray-800 text-white text-center">Admin ID</th>
+          <th class="px-4 py-2 bg-gray-800 text-white text-center">Name</th>
+          <th class="px-4 py-2 bg-gray-800 text-white text-center">Email</th>
+          <th class="px-4 py-2 bg-gray-800 text-white text-center">Status</th>
+          <th class="px-4 py-2 bg-gray-800 text-white text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-700">
+        {% for admin in admins %}
+        <tr class="hover:bg-gray-200 items-center">
+          <td class="border px-4 py-2 text-center">{{ admin[0] }}</td>
+          <td class="border px-4 py-2 text-center">{{ admin[1] }}</td>
+          <td class="border px-4 py-2 text-center">{{ admin[2] }}</td>
+          <td class="border px-4 py-2 text-center">{{ admin[3] }}</td>
+          <td class="border px-4 py-2 text-center">
+
+            <!-- <button
+              class="bg-gray-600 hover:bg-gray-800 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline ml-2"
+              data-toggle="modal" data-target="#updateModal" data-user-id="{{ admin[0] }}"
+              data-user-name="{{ admin[1] }}" data-user-email="{{ admin[2] }}" data-status="{{ admin[3] }}"
+              data-usertype="Admin">Update</button> -->
+
+            <button
+              class="bg-gray-600 hover:bg-gray-800 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline ml-2"
+              onclick="openUpdateModal('{{ admin[0] }}', '{{ admin[1] }}', '{{ admin[2] }}', '{{ admin[3] }}', 'admin')">
+              Update
+            </button>
+
+            <button
+              class="bg-gray-600 hover:bg-gray-800 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline ml-2"
+              onclick="deleteUser('{{ admin[0] }}','admin')">Delete</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div id="updateModal" class="fixed inset-0 z-50 flex items-center justify-center hidden  mt-40"
+    aria-labelledby="updateModalLabel" aria-modal="true" role="dialog">
+    <div class="relative mx-auto my-8 max-w-lg p-6 bg-white rounded-lg shadow-lg">
+      <button type="button" class="close float-right" aria-label="Close" onclick="closeModal()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h2 class="text-2xl font-bold mb-4 text-center">Update User</h2>
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+      </div>
+      <div>
+        <input type="hidden" id="userTypeInput">
+        <div class="mb-4 bg-white">
+          <label for="userID" class="block mb-1 font-semibold">UserID:</label>
+          <input type="text" id="userId"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+            readonly>
+        </div>
+        <div class="mb-4">
+          <label for="name" class="block mb-1 font-semibold">Name:</label>
+          <input type="text" id="name"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+        </div>
+        <div class="mb-4">
+          <label for="email" class="block mb-1 font-semibold">Email:</label>
+          <input type="email" id="email"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+        </div>
+        <div class="mb-4">
+          <label for="status" class="block mb-1 font-semibold">Status:</label>
+          <input type="text" id="status"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+        </div>
+        <div class="flex justify-center mt-4">
+          <button type="button"
+            class="w-32 px-4 py-2 ml-4 bg-black text-white font-bold rounded-md hover:bg-gray-800 focus:outline-none focus:bg-gray-800"
+            onclick="submitUpdateUser()">Update User</button>
+          <button type="button"
+            class="w-32 px-4 py-2 ml-4 bg-black text-white font-bold rounded-md hover:bg-gray-800 focus:outline-none focus:bg-gray-800"
+            id="changeToAdminBtn" onclick="changeToAdmin()">Change to Admin</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+
+
+  <script>
+
+    function validateUpdateUser(name, email, status) {
+      if (name.trim() === '' || email.trim() === '' || status.trim() === '') {
+        alert('Please fill in all the fields.');
+        return false;
+      }
+
+      if (!email.includes('@')) {
+        alert('Please enter a valid email address.');
+        return false;
+      }
+
+      return true;
+    }
+
+
+
+    function changeToAdmin() {
+      const userId = document.getElementById('userId').value;
+
+      if (confirm("Are you sure you want to change this user to an admin?")) {
+        fetch('/change_to_admin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            'userid': userId,
+          }),
+        })
+          .then(response => {
+            if (response.ok) {
+              location.reload();
+            } else {
+              console.error('Failed to change user to admin');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      } else {
+        console.log('Change to admin cancelled.');
+      }
+    }
+
+    function deleteUser(userID, user_type) {
+      console.log(userID)
+      if (confirm("Are you sure you want to delete this user?")) {
+        fetch('/delete_user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            'userid': userID,
+            'user_type': user_type
+          }),
+        })
+          .then(response => {
+            if (response.ok) {
+           
+              location.reload();
+            } else {
+              // Handle errors
+              console.error('Failed to delete user');
+            }
+          })
+
+      } else {
+        console.log("Booking cancellation unsuccessful.");
+      }
+    }
+
+    function openUpdateModal(userId, name, email, status, userType) {
+      document.getElementById('userId').value = userId;
+      document.getElementById('name').value = name;
+      document.getElementById('email').value = email;
+      document.getElementById('status').value = status;
+      document.getElementById('userTypeInput').value = userType;
+
+      //  console.log(userType)
+      document.getElementById('updateModal').style.display = 'block';
+
+      const changeToAdminBtn = document.getElementById('changeToAdminBtn');
+
+      if (userType === 'admin') {
+        changeToAdminBtn.style.display = 'none';
+      } else {
+        changeToAdminBtn.style.display = 'block';
+      }
+
+
+
+    }
+
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+    function submitUpdateUser() {
+  const userId = document.getElementById('userId').value;
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const status = document.getElementById('status').value;
+  const userType = document.getElementById('userTypeInput').value;
+
+  if (!validateUpdateUser(name, email, status)) {
+    return; 
+  }
+
+ 
+  closeModal('updateModal');
+
+  if (confirm('Are you sure you want to update the user?')) {
+   
+    fetch('/admin/update_user', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: userId,
+        name: name,
+        email: email,
+        status: status,
+        userType: userType
+      }),
+    })
+      .then(response => {
+        if (response.ok) {
+       
+          console.log('User updated successfully');
+          location.reload()
+        } else {
+   
+          console.error('Failed to update user');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  } else {
+    console.log('User update cancelled.');
+  }
+}
+
+
+   
+    document.querySelectorAll('.close').forEach(function (el) {
+      el.addEventListener('click', function () {
+        closeModal('updateModal');
+      });
+    });
+
+    window.addEventListener('click', function (event) {
+      if (event.target === document.getElementById('updateModal')) {
+        closeModal('updateModal');
+      }
+    });
+  </script>
+</body>
+
+</html>

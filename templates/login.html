@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .flash {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            opacity: 1;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 400px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        function openModal() {
+            document.getElementById('signupModal').style.display = 'block';
+        }
+        function closeModal() {
+            document.getElementById('signupModal').style.display = 'none';
+            document.querySelector('#signupModal form').reset();
+        }
+
+        function openForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'block';
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+            document.querySelector('#forgotPasswordModal form').reset();
+        }
+
+        function showPasswordResetModal() {
+            document.getElementById('passwordResetModal').style.display = 'block';
+        }
+
+        function closePasswordResetModal() {
+            document.getElementById('passwordResetModal').style.display = 'none';
+            user_authentication = 'false';
+            window.location.href = '/login';
+
+        }
+
+        function validateLogin() {
+            var email = document.getElementById("emailaddress").value;
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            var emailError = document.getElementById("emailError");
+
+            if (!emailRegex.test(email)) {
+                emailError.textContent = "Please enter a valid email address.";
+                return false; 
+            } else {
+                emailError.textContent = ""; 
+            }
+
+            return true;
+        }
+
+        function submitForm() {
+    
+            document.getElementById("emailError").textContent = "";
+    
+        }
+
+        function checkPasswordMatchSignUp() {
+            var password = document.getElementById("passwordsignup").value;
+            console.log('password is', password)
+            var confirm_password = document.getElementById("confirm_password").value;
+            console.log('confirm password is', confirm_password)
+
+            var passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,}$/;
+
+            if (!passwordRegex.test(password)) {
+                alert("Password must contain:\n- At least 8 characters\n- At least 1 uppercase letter\n- At least 1 lowercase letter\n- At least 1 digit\n- At least 1 special character (!@#$%^&*()_+)");
+                document.getElementById("passwordsignup").value = "";
+                document.getElementById("confirm_password").value = ""; 
+                return false; 
+            } else {
+
+                if (password !== confirm_password) {
+                    alert("Passwords do not match!");
+                    document.getElementById("passwordsignup").value = ""; 
+                    document.getElementById("confirm_password").value = ""; 
+                    return false;
+                }
+            }
+            alert("Sign up successful!");
+            return true;
+        }
+
+        function checkPasswordMatchForgot() {
+            var password = document.getElementById("new_password").value;
+            console.log('password is', password)
+            var confirm_password = document.getElementById("confirm_new_password").value;
+            console.log('confirm password is', confirm_password)
+
+            var passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,}$/;
+
+            if (!passwordRegex.test(password)) {
+                alert("Password must contain:\n- At least 8 characters\n- At least 1 uppercase letter\n- At least 1 lowercase letter\n- At least 1 digit\n- At least 1 special character (!@#$%^&*()_+)");
+                document.getElementById("new_password").value = ""; 
+                document.getElementById("confirm_new_password").value = ""; 
+                return false; 
+            } else {
+
+                if (password !== confirm_password) {
+                    alert("Passwords do not match!");
+                    document.getElementById("new_password").value = ""; 
+                    document.getElementById("confirm_new_password").value = ""; 
+                    return false; 
+                }
+            }
+            return true;
+        }
+
+
+
+        function submitForm() {
+            if (!checkPasswordMatchSignUp()) {
+            
+                document.getElementById("password").value = "";
+                document.getElementById("confirm_password").value = "";
+                return false;
+            }
+            return true;
+        }
+
+        function submitForgotForm() {
+            if (!checkPasswordMatchForgot()) {
+                document.getElementById("new_password").value = "";
+                document.getElementById("confirm_new_password").value = "";
+                return false;
+            }
+            return true;
+        }
+
+        setTimeout(() => {
+        document.querySelectorAll('.flash').forEach((flash) => {
+            flash.style.opacity = '0';
+            setTimeout(() => {
+                flash.style.display = 'none';
+            }, 500);
+        });
+    }, 4000);
+
+    </script>
+</head>
+
+<body class="bg-gray-100 flex justify-center items-center h-screen">
+
+    <div class="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 w-full max-w-md">
+        <h2 class="text-3xl font-semibold mb-6 text-center">Room Booking System</h2>
+
+        <div id="flash-messages" class="mb-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category != 'success' or not session.logged_in %}
+                            <div class="flash bg-blue-100 border border-blue-500 text-blue-700 px-4 py-3 mb-2 text-center" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+       
+        <form method="post" action="{{ url_for('login') }}" onsubmit="return validateLogin()">
+            <div class="mb-4">
+                <label for="emailaddress" class="block text-gray-700 text-sm font-bold mb-2">Email Address:</label>
+                <!-- <input type="text" id="emailaddress" name="emailaddress" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"> -->
+                <input type="text" id="emailaddress" name="emailaddress" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <span id="emailError" class="text-red-500 text-sm"></span> 
+            </div>
+            <div class="mb-6">
+                <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+                <input type="password" id="password" name="password" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="flex items-center justify-between">
+                <button type="submit" name="login_type" value="user" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded focus:outline-none focus:shadow-outline">User Login</button>
+                <button type="submit" name="login_type" value="admin" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded focus:outline-none focus:shadow-outline ml-2">Admin Login</button>
+            </div>
+        </form>
+
+  
+        <div class="mt-4 text-center">
+            <a href="#" onclick="openModal()" class="text-sm text-blue-500 hover:text-blue-700">Sign up</a> |
+            <a href="#" onclick="openForgotPasswordModal()" class="text-sm text-blue-500 hover:text-blue-700">Forgot password</a>
+        </div>
+    </div>
+
+
+<div id="signupModal" class="modal">
+    <div class="modal-content bg-white shadow-md rounded-lg px-8 py-6 w-full max-w-md">
+   
+        <!-- <h3 class="text-2xl font-semibold mb-4">Sign Up</h3> -->
+        <form method="post" action="/signup" onsubmit="return checkPasswordMatchSignUp()">
+  
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-bold text-gray-700 mb-1">Name:</label>
+                <input type="text" id="name" name="name" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500">
+            </div>
+
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-bold text-gray-700 mb-1">Email:</label>
+                <input type="email" id="email" name="email" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500">
+            </div>
+     
+            <div class="mb-4">
+                <label for="password" class="block text-sm font-bold text-gray-700 mb-1">Password:</label>
+                <input type="password" id="passwordsignup" name="password" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500">
+            </div>
+  
+            <div class="mb-4">
+                <label for="confirm_password" class="block text-sm font-bold text-gray-700 mb-1">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500">
+            </div>
+           
+            <div class="mb-4">
+                <label for="security_question" class="block text-sm font-bold text-gray-700 mb-1">Select a Security Question:</label>
+                <select id="security_question_signup" name="security_question" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500">
+                    {% for question in security_questions %}
+                    <option value="{{ question }}">{{ question }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+     >
+            <div class="mb-4">
+                <label for="security_answer" class="block text-sm font-bold text-gray-700 mb-1">Enter Your Answer:</label>
+                <input type="text" id="security_answer_signup" name="security_answer" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500">
+            </div>
+      
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Sign Up
+            </button>
+            </form>
+
+        <span class="close absolute top-0 right-0 mt-2 mr-2 text-gray-600 text-3xl cursor-pointer"onclick="closeModal()">×</span>
+    </div>
+</div>
+
+
+
+<div id="forgotPasswordModal" class="modal">
+    <div class="modal-content bg-white rounded-lg shadow-md p-6 max-w-sm w-full">
+   
+        <h3 class="text-lg font-semibold mb-4">Forgot Password</h3>
+        <form method="post" action="/forgot_password">
+      
+            <div class="mb-4">
+                <label for="email" class="block mb-2">Email:</label>
+                <input type="email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+            </div>
+          
+            <div class="mb-4">
+                <label for="security_question" class="block mb-2">Select a Security Question:</label>
+                <select id="security_question" name="security_question" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                    {% for question in security_questions %}
+                        <option value="{{ question }}">{{ question }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        
+            <div class="mb-4">
+                <label for="security_answer" class="block mb-2">Enter Your Answer:</label>
+                <input type="text" id="security_answer" name="security_answer" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+            </div>
+   
+            <div class="flex justify-center">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+            </div>
+        </form>
+     
+        <span class="close absolute top-0 right-0 mt-4 mr-4 cursor-pointer" onclick="closeForgotPasswordModal()">×</span>
+    </div>
+</div>
+
+{% if user_authentication == 'true' %}
+<div id="passwordResetModal" class="modal" style="display: block;">
+    <div class="modal-content bg-white rounded-lg shadow-md p-6 max-w-sm w-full">
+        <h3 class="text-lg font-semibold mb-4">Password Reset</h3>
+        
+        <form method="post" action="/reset_password" class="mb-4"  onsubmit="return checkPasswordMatchForgot()">
+    
+            <div class="mb-4">
+                <label for="new_password" class="block mb-2">New Password:</label>
+                <input type="password" id="new_password" name="new_password" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+            </div>
+          
+            <div class="mb-4">
+                <label for="confirm_new_password" class="block mb-2">Confirm New Password:</label>
+                <input type="password" id="confirm_new_password" name="confirm_new_password" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+            </div>
+  
+            <input type="hidden" id="email" name="email" value="{{ reset_email }}">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Reset Password</button>
+        </form>
+      
+        <span class="close absolute top-0 right-0 mt-4 mr-4 cursor-pointer" onclick="closePasswordResetModal()">×</span>
+    </div>
+</div>
+{% endif %}
+
+
+    {% if user_authentication == 'false' %}
+    <script>
+        function showAlertAndRefresh() {
+            alert("Incorrect email or recovery information. Please try again or contact support.");
+            window.location.href = '/login'
+        }
+        showAlertAndRefresh(); 
+    </script>
+    {% endif %}
+
+
+    {% if reset_done == 'true' %}
+    <script>
+        function showAlertAndRefreshReset() {
+            alert("Password changed successfully!");
+            window.location.href = '/login'
+        }
+        showAlertAndRefreshReset(); 
+    </script>
+    {% endif %}
+</body>
+</html>
