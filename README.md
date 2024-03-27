@@ -10,4 +10,12 @@
 1) Set FLASK_APP=main.py
 2) flask run
 
+# create a new account to login as user
+# credentials for admin:
+
+email: admin1@email.com
+password: 1
+
+
+
 
